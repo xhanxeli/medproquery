@@ -1,0 +1,32 @@
+SELECT
+  p.ID AS 'Order ID',
+  p.post_date AS 'Purchase Date',
+  MAX( CASE WHEN pm.meta_key = '_billing_email'       AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'Email Address',
+  MAX( CASE WHEN pm.meta_key = '_billing_first_name'  AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'First Name',
+  MAX( CASE WHEN pm.meta_key = '_billing_last_name'   AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'Last Name',
+  MAX( CASE WHEN pm.meta_key = '_billing_address_1'   AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'Address',
+  MAX( CASE WHEN pm.meta_key = '_billing_city'        AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'City',
+  MAX( CASE WHEN pm.meta_key = '_billing_state'       AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'State',
+  MAX( CASE WHEN pm.meta_key = '_billing_postcode'    AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'Post Code',
+    CASE p.post_status
+      WHEN 'wc-pending'    THEN 'Pending Payment'
+      WHEN 'wc-processing' THEN 'Processing'
+      WHEN 'wc-on-hold'    THEN 'On Hold'
+      WHEN 'wc-completed'  THEN 'Completed'
+      WHEN 'wc-cancelled'  THEN 'Cancelled'
+      WHEN 'wc-refunded'   THEN 'Refunded'
+      WHEN 'wc-failed'     THEN 'Failed'
+    ELSE 'Unknown'
+    END AS 'Purchase Status',
+  MAX( CASE WHEN pm.meta_key = '_order_total'         AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'Order Total',
+  MAX( CASE WHEN pm.meta_key = '_paid_date'           AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'Paid Date',
+  ( SELECT GROUP_CONCAT(CONCAT(m.meta_value, ' x ', i.order_item_name) separator '</br>' )
+    FROM 1lWe7_woocommerce_order_items i
+    JOIN 1lWe7_woocommerce_order_itemmeta m ON i.order_item_id = m.order_item_id AND meta_key = '_qty'
+    WHERE i.order_id = p.ID AND i.order_item_type = 'line_item') AS 'Items Ordered',
+  MAX( CASE WHEN pm.meta_key = 'post_excerpt'         AND p.ID = pm.post_id THEN pm.meta_value END ) AS 'User Comments'
+FROM  1lWe7_posts AS p
+JOIN  1lWe7_postmeta AS pm ON p.ID = pm.post_id
+JOIN  1lWe7_woocommerce_order_items AS oi ON p.ID = oi.order_id
+WHERE post_type = 'shop_order'
+GROUP BY p.ID
