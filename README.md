@@ -1,3 +1,3 @@
 # woocommerce-db-query
 
-Query database for woocommerce billing fields.
+Query database for woocommerce order, products & billing details.
